@@ -3,6 +3,9 @@
 
 #include <cstddef>
 
+#define MAX_EVENTS 1024
+#define READ_BUFFER 1024
+
 void errif(bool,const char*);
 void writeToSocket(int sockfd, const char* buf, size_t len);
 void readFromSocket(int sockfd, char* buf, size_t len);

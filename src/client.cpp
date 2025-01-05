@@ -5,6 +5,7 @@
 #include<iostream>
 #include<unistd.h>
 
+#define BUFFER_SIZE 1024
 int main() {
     try {
         int sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -23,7 +24,7 @@ int main() {
         }
 
         while (true) {
-            char buf[1024];
+            char buf[BUFFER_SIZE];
             bzero(buf, sizeof(buf));
             std::cin >> buf;
             writeToSocket(sockfd, buf, sizeof(buf));

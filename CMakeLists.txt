@@ -22,7 +22,3 @@ add_executable(server src/server.cpp ${COMMON_SRC_FILES})
 
 # 添加 client 可执行文件
 add_executable(client src/client.cpp ${COMMON_SRC_FILES})
-
-# 链接静态库 libutil.a
-target_link_libraries(server ${CMAKE_SOURCE_DIR}/libutil.a)
-target_link_libraries(client ${CMAKE_SOURCE_DIR}/libutil.a)
