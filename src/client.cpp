@@ -1,4 +1,4 @@
-#include"util/util_socket.h"
+#include"util/socket.h"
 #include "error/socket_exception.h"
 #include<sys/socket.h>
 #include<arpa/inet.h>
@@ -7,37 +7,32 @@
 
 #define BUFFER_SIZE 1024
 int main() {
-    try {
-        int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-        if (sockfd == -1) {
-            handleError(SocketError::CONNECTION_FAILED);
-        }
+        // int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+        // if (sockfd == -1) {
+        //     handleError(SocketError::CONNECTION_FAILED);
+        // }
 
-        struct sockaddr_in serv_addr;
-        bzero(&serv_addr, sizeof(serv_addr));
-        serv_addr.sin_family = AF_INET;
-        serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
-        serv_addr.sin_port = htons(8888);
+        // struct sockaddr_in serv_addr;
+        // bzero(&serv_addr, sizeof(serv_addr));
+        // serv_addr.sin_family = AF_INET;
+        // serv_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+        // serv_addr.sin_port = htons(8888);
 
-        if (connect(sockfd, (sockaddr*)&serv_addr, sizeof(serv_addr)) == -1) {
-            handleError(SocketError::CONNECTION_FAILED);
-        }
+        Socket * client_sock = new Socket();
+        InetAddress * serv_addr = new InetAddress("127.0.0.1", 8888);
+        
+
+        client_sock->connect(serv_addr);
 
         while (true) {
             char buf[BUFFER_SIZE];
             bzero(buf, sizeof(buf));
             std::cin >> buf;
-            writeToSocket(sockfd, buf, sizeof(buf));
-
+            client_sock->write(buf, sizeof(buf));
             bzero(buf, sizeof(buf));
-            readFromSocket(sockfd, buf, sizeof(buf));
+            client_sock->read(buf, sizeof(buf));
         }
 
-        close(sockfd);
-    } catch (const SocketException& e) {
-        std::cerr << "Socket error: " << e.what() << std::endl;
-        return 1;
-    }
-
+        client_sock->close();
     return 0;
-}
+    }
