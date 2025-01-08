@@ -1,0 +1,29 @@
+@startuml
+class EventLoop {
+    - Epoll *ep
+    + void update_channel(Channel *ch)
+    + void loop()
+}
+class Server {
+    - EventLoop *loop
+    - Socket *serv_sock
+    + Server(EventLoop *loop)
+    + ~Server()
+    + void handle_echo_event(Socket *client_sock)
+    + void new_connection(Socket *serv_sock)
+}
+
+Server *-- EventLoop
+
+class Channel {
+    - EventLoop *loop;
+    - int fd;
+    - uint32_t events;
+    - uint32_t revents;
+    - bool in_epoll;
+    - std::function<void()> callback;
+    + void handle_event()
+}
+
+Channel --> EventLoop
+@enduml

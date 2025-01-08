@@ -1,127 +1,135 @@
 #include "socket.h"
-#include "error/socket_exception.h"
-#include <sys/socket.h>
-#include <iostream>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <errno.h>
-#include <cstring>
+
 #include <fcntl.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
+#include <cstring>
 
-void errif(bool condition, const char *errmsg) {
-    if (condition) {
-        std::cerr << errmsg << ": " << std::strerror(errno) << std::endl;
-        exit(EXIT_FAILURE);
-    }
-}
+#include "error/socket_exception.h"
+#include "util.h"
 
 // 默认IPV4，TCP
-Socket::Socket() : sockfd(-1){
+Socket::Socket() : sockfd(-1) {
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
     errif(sockfd == -1, "socket create error");
 }
-Socket::Socket(int _fd) : sockfd(_fd){
+Socket::Socket(int _fd) : sockfd(_fd) {
     errif(sockfd == -1, "socket create error");
 }
-Socket::~Socket(){
-    if(sockfd != -1){
+Socket::~Socket() {
+    if (sockfd != -1) {
         close();
         sockfd = -1;
     }
 }
 
 void Socket::bind(InetAddress *addr) {
-    if (::bind(sockfd, (sockaddr *)&addr->addr,addr->addr_len) == -1) {
-        std::cerr << "Error binding socket: " << std::strerror(errno) << std::endl;
+    if (::bind(sockfd, (sockaddr *)&addr->addr, addr->addr_len) == -1) {
+        std::cerr << "Error binding socket: " << std::strerror(errno)
+                  << std::endl;
         handleError(SocketError::BIND_FAILED);
     }
 }
 
-void Socket::listen(){
+void Socket::listen() {
     if (::listen(sockfd, SOMAXCONN) == -1) {
-        std::cerr << "Error listening on socket: " << std::strerror(errno) << std::endl;
+        std::cerr << "Error listening on socket: " << std::strerror(errno)
+                  << std::endl;
         handleError(SocketError::LISTEN_FAILED);
     }
 }
-ssize_t Socket::write(const char* buf, size_t len) {
+ssize_t Socket::write(const char *buf, size_t len) {
     ssize_t write_bytes = ::write(sockfd, buf, len);
     // std::cout << "write_bytes is " << write_bytes << std::endl;
     if (write_bytes == -1) {
-        std::cerr << "Error writing to socket: " << std::strerror(errno) << std::endl;
+        std::cerr << "Error writing to socket: " << std::strerror(errno)
+                  << std::endl;
         handleError(SocketError::SEND_FAILED);
     }
     return write_bytes;
 }
 
 // read坚决不close，close由上层调用
-ssize_t Socket::read(char* buf, size_t len) {
+ssize_t Socket::read(char *buf, size_t len) {
     ssize_t read_bytes = ::read(sockfd, buf, len);
     if (read_bytes == -1) {
-        if (errno == EINTR) { // 客户端正常中断、继续读取
-            // printf("continue reading");
-            // 如果是被信号中断，继续读取
-        } else if ((errno == EAGAIN) || (errno == EWOULDBLOCK)) { // 非阻塞IO，这个条件表示数据全部读取完毕
-            // std::cerr << "finish reading once, errno: " << std::strerror(errno) << std::endl;
+        if (errno == EINTR) {  // 客户端正常中断、继续读取
+                               // printf("continue reading");
+                               // 如果是被信号中断，继续读取
+        } else if ((errno == EAGAIN) ||
+                   (errno ==
+                    EWOULDBLOCK)) {  // 非阻塞IO，这个条件表示数据全部读取完毕
+            // std::cerr << "finish reading once, errno: " <<
+            // std::strerror(errno) << std::endl;
         } else {
-            // std::cerr << "Error reading from socket: " << std::strerror(errno) << std::endl;
-            // close();
+            // std::cerr << "Error reading from socket: " <<
+            // std::strerror(errno) << std::endl; close();
         }
     }
     return read_bytes;
 }
 
 int Socket::accept(InetAddress *client_addr) {
-    int client_sockfd = ::accept(sockfd, (sockaddr *)&client_addr->addr,&client_addr->addr_len);
+    int client_sockfd = ::accept(sockfd, (sockaddr *)&client_addr->addr,
+                                 &client_addr->addr_len);
     if (client_sockfd == -1) {
-        std::cerr << "Error accepting connection: " << std::strerror(errno) << std::endl;
+        std::cerr << "Error accepting connection: " << std::strerror(errno)
+                  << std::endl;
         handleError(SocketError::ACCEPT_FAILED);
     }
-    printf("new client fd %d! IP: %s Port: %d\n", client_sockfd, inet_ntoa(client_addr->addr.sin_addr), ntohs(client_addr->addr.sin_port));
+    printf("new client fd %d! IP: %s Port: %d\n", client_sockfd,
+           inet_ntoa(client_addr->addr.sin_addr),
+           ntohs(client_addr->addr.sin_port));
     return client_sockfd;
 }
 
 // 目前是阻塞且单线程的，后续优化
 void echoServer(Socket *client_sock) {
     char buf[READ_BUFFER];
-    std::cout << "client fd is " << client_sock->getFd() <<std::endl;
+    std::cout << "client fd is " << client_sock->get_fd() << std::endl;
     while (true) {
-        bzero(buf, sizeof(buf));
+        bzero(&buf, sizeof(buf));
         ssize_t read_bytes = client_sock->read(buf, sizeof(buf));
         if (read_bytes > 0) {
-            std::cout << "message from client fd " << client_sock->getFd() << ": " << buf << std::endl;
-            client_sock->write(buf, sizeof(buf)); // echo服务
+            std::cout << "message from client fd " << client_sock->get_fd()
+                      << ": " << buf << std::endl;
+            client_sock->write(buf, sizeof(buf));  // echo服务
         } else if (read_bytes == 0) {
-            std::cout << "client fd " << client_sock->getFd()  << " is disconnected" << std::endl;
+            std::cout << "client fd " << client_sock->get_fd()
+                      << " is disconnected" << std::endl;
             client_sock->close();
             break;
-        }else if(read_bytes == -1 && errno == EINTR){  //客户端正常中断、继续读取
+        } else if (read_bytes == -1 &&
+                   errno == EINTR) {  //客户端正常中断、继续读取
             printf("continue reading");
             continue;
-        } else if(read_bytes == -1 && ((errno == EAGAIN) || (errno == EWOULDBLOCK))){//非阻塞IO，这个条件表示数据全部读取完毕
+        } else if (read_bytes == -1 &&
+                   ((errno == EAGAIN) ||
+                    (errno ==
+                     EWOULDBLOCK))) {  //非阻塞IO，这个条件表示数据全部读取完毕
             printf("finish reading once, errno: %d\n", errno);
             break;
         }
     }
-
 }
-int Socket::close(){
-    if(sockfd == -1){
-        std::cerr << "reclose socket: "<<std::endl;
+int Socket::close() {
+    if (sockfd == -1) {
+        std::cerr << "reclose socket: " << std::endl;
         return -1;
     }
     return ::close(sockfd);
 }
 
-void Socket::setnonblocking(){
+void Socket::setNonblocking() {
     fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK);
 }
-int Socket::getFd(){
-    return sockfd;
-}
+int Socket::get_fd() { return sockfd; }
 void Socket::connect(InetAddress *addr) {
     if (::connect(sockfd, (sockaddr *)&addr->addr, addr->addr_len) == -1) {
-        std::cerr << "Error connecting to server: " << std::strerror(errno) << std::endl;
+        std::cerr << "Error connecting to server: " << std::strerror(errno)
+                  << std::endl;
         handleError(SocketError::CONNECTION_FAILED);
     }
 }

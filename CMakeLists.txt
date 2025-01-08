@@ -1,5 +1,15 @@
 cmake_minimum_required(VERSION 3.10)
 
+
+
+# 启用debug模式
+set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_CXX_FLAGS "-g -Wall -Werror -std=c++14")
+set(CMAKE_CXX_COMPILER "g++")
+set(CMAKE_CXX_FLAGS_DEBUG "-O0")
+
+# 设置编译选项，启用调试符号并禁用优化
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")
 # 设置项目名称
 project(cpp-web-server)
 

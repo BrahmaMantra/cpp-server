@@ -1,11 +1,9 @@
 #include "socket_exception.h"
 
+SocketException::SocketException(SocketError error)
+    : /*error_(error),*/ msg_(getErrorMessage(error)) {}
 
-SocketException::SocketException(SocketError error) : error_(error), msg_(getErrorMessage(error)) {}
-
-const char* SocketException::what() const noexcept {
-    return msg_.c_str();
-}
+const char *SocketException::what() const noexcept { return msg_.c_str(); }
 
 string SocketException::getErrorMessage(SocketError error) const {
     switch (error) {
@@ -32,6 +30,4 @@ string SocketException::getErrorMessage(SocketError error) const {
     }
 }
 // 直接抛出异常
-void handleError(SocketError error) {
-    throw SocketException(error);
-}
+void handleError(SocketError error) { throw SocketException(error); }
