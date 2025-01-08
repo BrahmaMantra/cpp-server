@@ -6,6 +6,7 @@
 #include <functional>
 
 #include "InetAddress.h"
+#include "acceptor.h"
 #include "channel.h"
 #include "socket.h"
 
@@ -16,24 +17,19 @@
  * @param _loop 指向 EventLoop 对象的指针
  */
 Server::Server(EventLoop *_loop) : loop(_loop) {
-    Socket *serv_sock = new Socket();
-    InetAddress *serv_addr = new InetAddress("127.0.0.1", 7777);
-    serv_sock->bind(serv_addr);
-    serv_sock->listen();
-    serv_sock->setNonblocking();
-
-    Channel *servChannel = new Channel(loop, serv_sock->get_fd());
-    std::function<void()> callback =
-        std::bind(&Server::new_connection, this, serv_sock);
-    servChannel->set_callback(callback);
-    //这一步会把Channel加入Loop的epoll中
-    servChannel->enable_reading();
+    // 把bind listen，accept等细节封装到Acceptor中
+    acceptor = new Acceptor(loop);
+    // std::placeholders::_1是一个占位符，表示绑定的函数的第一个参数。
+    //这里表示new_connection函数的第一个参数将由调用cb时传递的参数提供。
+    std::function<void(Socket *)> cb =
+        std::bind(&Server::new_connection, this, std::placeholders::_1);
+    acceptor->set_new_connection_callback(cb);
 }
 
 /**
  * @brief Server 析构函数，释放资源
  */
-Server::~Server() {}
+Server::~Server() { delete acceptor; }
 
 /**
  * @brief 处理客户端的 echo 事件
@@ -62,7 +58,7 @@ void Server::handle_echo_event(Socket *client_sock) {
                    ((errno == EAGAIN) ||
                     (errno ==
                      EWOULDBLOCK))) {  //非阻塞IO，这个条件表示数据全部读取完毕
-            printf("finish reading once, errno: %d\n", errno);
+            // printf("finish reading once, errno: %d\n", errno);
             break;
         }
     }
@@ -73,6 +69,7 @@ void Server::handle_echo_event(Socket *client_sock) {
  * @param serv_sock 指向服务器 Socket 对象的指针
  */
 void Server::new_connection(Socket *serv_sock) {
+    static int connect_num = 0;
     InetAddress *clnt_addr = new InetAddress();  //会发生内存泄露！没有delete
     Socket *clnt_sock =
         new Socket(serv_sock->accept(clnt_addr));  //会发生内存泄露！没有delete
@@ -86,4 +83,6 @@ void Server::new_connection(Socket *serv_sock) {
     clntChannel->set_callback(callback);
     //这一步会把Channel加入Loop的epoll中
     clntChannel->enable_reading();
+    connect_num++;
+    std::cout << "current connection number: " << connect_num << std::endl;
 }

@@ -7,7 +7,7 @@
     - uint32_t revents：在epoll返回该Channel时文件描述符正在发生的事件（实际发生）
     - bool in_epoll
     - std::function<void()> callback:执行的回调函数
-所以说，外界只知道有EventLoop和Channel，并且认为这就是Epoll的入口。在目前阶段，服务端和每个进来的客户端都会先封装一个Channel，然后才送进EpollLoop里进行检查。其中Server里面有一个EventLoop，用来管理这个Server的事件,然后所有封装好的Channel通过enable_reading加入到EventLoop里面，拆解成epoll_event进到EpollLoop里面
+所以说，外界只知道有EventLoop和Channel，并且认为这就是Epoll的入口。在目前阶段，(服务端X)Acceptor和每个进来的客户端都会先封装一个Channel，然后通过enable_reading()才送进EpollLoop里进行检查。Server里面有一个EventLoop，用来管理这个Server的事件,然后所有封装好的Channel通过enable_reading加入到EventLoop里面，拆解成epoll_event进到EpollLoop里面
 ~~~ cpp
     // ep调用的update_channel函数
 void Epoll::update_channel(Channel *channel) {

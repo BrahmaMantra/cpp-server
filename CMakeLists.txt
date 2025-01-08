@@ -32,3 +32,49 @@ add_executable(server src/server.cpp ${COMMON_SRC_FILES})
 
 # 添加 client 可执行文件
 add_executable(client src/client.cpp ${COMMON_SRC_FILES})
+
+# 添加自定义目标 run-server
+add_custom_target(run-server
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/server
+    DEPENDS server
+    WORKING_DIRECTORY ${CMAKE_PROJECT_DIR}
+    COMMENT "Running server..."
+)
+
+# 添加自定义目标 run-client
+add_custom_target(run-client
+    COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/client
+    DEPENDS client
+    WORKING_DIRECTORY ${CMAKE_PROJECT_DIR}
+    COMMENT "Running client..."
+)
+
+
+# 启用测试
+enable_testing()
+
+# 添加测试源文件
+file(GLOB TEST_SRC_FILES tests/*.cpp)
+
+# 添加测试可执行文件
+add_executable(runTests ${TEST_SRC_FILES} ${COMMON_SRC_FILES})
+
+# 链接测试可执行文件所需的库
+target_link_libraries(runTests gtest gtest_main pthread)
+
+# 添加测试
+add_test(NAME runTests COMMAND runTests)
+
+# 添加自定义目标 gdb
+add_custom_target(gdb
+    COMMAND cd tools && gdb -x command.gdb
+    WORKING_DIRECTORY ${CMAKE_PROJECT_DIR}
+    COMMENT "Running gdb with command.gdb..."
+)
+
+# 添加自定义目标 gdb
+add_custom_target(fmt
+    COMMAND cd tools && bash format.sh
+    WORKING_DIRECTORY ${CMAKE_PROJECT_DIR}
+    COMMENT "Making fmt..."
+)

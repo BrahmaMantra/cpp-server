@@ -85,35 +85,6 @@ int Socket::accept(InetAddress *client_addr) {
     return client_sockfd;
 }
 
-// 目前是阻塞且单线程的，后续优化
-void echoServer(Socket *client_sock) {
-    char buf[READ_BUFFER];
-    std::cout << "client fd is " << client_sock->get_fd() << std::endl;
-    while (true) {
-        bzero(&buf, sizeof(buf));
-        ssize_t read_bytes = client_sock->read(buf, sizeof(buf));
-        if (read_bytes > 0) {
-            std::cout << "message from client fd " << client_sock->get_fd()
-                      << ": " << buf << std::endl;
-            client_sock->write(buf, sizeof(buf));  // echo服务
-        } else if (read_bytes == 0) {
-            std::cout << "client fd " << client_sock->get_fd()
-                      << " is disconnected" << std::endl;
-            client_sock->close();
-            break;
-        } else if (read_bytes == -1 &&
-                   errno == EINTR) {  //客户端正常中断、继续读取
-            printf("continue reading");
-            continue;
-        } else if (read_bytes == -1 &&
-                   ((errno == EAGAIN) ||
-                    (errno ==
-                     EWOULDBLOCK))) {  //非阻塞IO，这个条件表示数据全部读取完毕
-            printf("finish reading once, errno: %d\n", errno);
-            break;
-        }
-    }
-}
 int Socket::close() {
     if (sockfd == -1) {
         std::cerr << "reclose socket: " << std::endl;

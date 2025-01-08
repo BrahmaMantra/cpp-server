@@ -12,8 +12,6 @@ Epoll::Epoll() : epfd(-1), events(nullptr) {
     epfd = epoll_create1(0);
     errif(epfd == -1, "epoll create error");
     events = new epoll_event[MAX_EVENTS];
-    std::cout << "Epoll(): epfd is " << epfd << ",events is " << events
-              << std::endl;
     bzero(events, sizeof(*events) * MAX_EVENTS);
 }
 
@@ -37,11 +35,12 @@ void Epoll::add_fd(int fd, uint32_t op) {
 std::vector<Channel *> Epoll::poll(int timeout) {
     std::vector<Channel *> active_channels;
     // 等待事件发生,这个函数会阻塞，直到某个事件发生或者超时
-    // std::cout<<"epfd is "<<epfd<<std::endl<<"events is "<<events<<std::endl;
+    // 这个函数会把返回的事件保存到events数组中，唯一修改events数组的地方
     int nfds = epoll_wait(epfd, events, MAX_EVENTS, timeout);
     errif(nfds == -1, "epoll wait error");
     for (int i = 0; i < nfds; ++i) {
         Channel *channel = static_cast<Channel *>(events[i].data.ptr);
+        // 把正在发生的事件保存到channel中
         channel->set_revents(events[i].events);
         active_channels.push_back(channel);
     }
@@ -52,6 +51,7 @@ void Epoll::update_channel(Channel *channel) {
     int fd = channel->get_fd();
     struct epoll_event ev;
     bzero(&ev, sizeof(ev));
+    // 这样在事件发生的时候，我们可以通过这个指针找到对应的Channel
     ev.data.ptr = channel;
     ev.events = channel->get_events();
     if (!channel->is_in_epoll()) {

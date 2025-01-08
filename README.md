@@ -1,5 +1,8 @@
 # cpp-server
-
+## 前置工作
+~~~ sh
+sudo apt-get install libgtest-dev
+~~~
 ## echoServer
 1. cmake .
 2. make all
@@ -17,3 +20,12 @@
 已经编写好了，ctrl+shift+D直接运行Debug Server，如需增加或修改任务去.vscode/launch.json和.vscode/tasks.json
 
 ...TODO!
+
+
+### 常用命令
+- cmake .
+- make all
+- make run-server
+- make run-client
+- ctest
+- make gdb

@@ -34,3 +34,5 @@
 *.DS_Store
 
 tools/classes.png
+Testing/
+CTestTestfile.cmake

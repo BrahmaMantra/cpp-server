@@ -1,10 +1,11 @@
 
 class EventLoop;
 class Socket;
+class Acceptor;
 class Server {
    private:
     EventLoop *loop;
-    Socket *serv_sock;
+    Acceptor *acceptor;
 
    public:
     Server(EventLoop *loop);

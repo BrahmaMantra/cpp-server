@@ -7,6 +7,7 @@
 class Epoll {
    private:
     int epfd;
+    // epoll_wait返回的事件数组，最大事件数
     struct epoll_event *events;
 
    public:

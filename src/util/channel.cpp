@@ -11,9 +11,7 @@ Channel::~Channel() {}
 
 void Channel::enable_reading() {
     // EPOLLIN可读，EPOLLET边缘触发
-    events = EPOLLIN | EPOLLET;
-    // std::cout<<"enable_reading(): events "<<events<<" addr is
-    // "<<&events<<std::endl;
+    events |= EPOLLIN | EPOLLET;
     loop->update_channel(this);
 }
 
