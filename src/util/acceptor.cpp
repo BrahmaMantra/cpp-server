@@ -11,32 +11,47 @@
  * @param _loop 指向EventLoop对象的指针
  */
 Acceptor::Acceptor(EventLoop *_loop) : loop(_loop) {
-    sock = new Socket();
+    acceptor_sock = new Socket();
     addr = new InetAddress("127.0.0.1", 7777);
-    sock->bind(addr);
-    sock->listen();
-    sock->setNonblocking();
-    accept_channel = new Channel(loop, sock->get_fd());
-    // server的socket在这里是不可变的，所以这里的callback是固定的
-    std::function<void()> callback =
-        std::bind(&Acceptor::accept_connection, this);
-    accept_channel->set_callback(callback);
-    accept_channel->enable_reading();
+    acceptor_sock->bind(addr);
+    acceptor_sock->listen();
+    acceptor_sock->setNonblocking();
+    acceptor_channel = new Channel(loop, acceptor_sock->get_fd());
+
+    // 为了在Epoll中监听accept事件，需要设置一个回调函数
+    // 如果在某个时刻你改变了acceptor_callback，那么channel_callback在执行时
+    // 会调用最新的acceptor_callback。这是因为channel_callback捕获的是this指针
+    // 而不是acceptor_callback的值。
+    std::function<void()> channel_callback = [this]() {
+        accept_connection();
+    };
+    // 将当前Channel的回调函数设置为channel_callback
+    acceptor_channel->set_read_callback(channel_callback);
+    acceptor_channel->enable_reading();
+    acceptor_channel->set_use_threadPool(false);
+    delete addr;
 }
 
 /**
  * @brief 析构函数，清理Acceptor对象
  */
 Acceptor::~Acceptor() {
-    delete sock;
+    delete acceptor_sock;
     delete addr;
-    delete accept_channel;
+    delete acceptor_channel;
 }
 
 /**
  * @brief 接受新连接并调用回调函数
  */
-void Acceptor::accept_connection() { acceptor_callback(sock); }
+// houxvzaizheli fenpei 
+void Acceptor::accept_connection() {
+     InetAddress *client_addr = new InetAddress();
+     Socket * client_sock = new Socket(acceptor_sock->accept(client_addr));
+     client_sock->setNonblocking();
+    // new_connection()
+     acceptor_callback(client_sock);
+    }
 
 /**
  * @brief 设置新的连接回调函数

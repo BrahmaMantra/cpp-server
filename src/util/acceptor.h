@@ -11,15 +11,16 @@ class Channel;
 class Acceptor {
    private:
     EventLoop *loop;
-    Socket *sock;
+    Socket *acceptor_sock;
     InetAddress *addr;
-    Channel *accept_channel;
+    Channel *acceptor_channel;
 
    public:
     Acceptor(EventLoop *_loop);
     ~Acceptor();
     void accept_connection();
+
     // 目前是由server的构造函数来决定的
-    std::function<void(Socket *)> acceptor_callback;
+    std::function<void(Socket *accept_sock)> acceptor_callback;
     void set_new_connection_callback(std::function<void(Socket *)> cb);
 };

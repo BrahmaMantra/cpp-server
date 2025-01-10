@@ -15,8 +15,10 @@ class Channel {
     //在epoll返回该Channel时文件描述符正在发生的事件（实际发生）
     uint32_t revents;
     bool in_epoll;
+    bool use_threadPool;
     // 执行的回调函数
-    std::function<void()> callback;
+    std::function<void()> read_callback;
+    std::function<void()> writeCallback;
 
    public:
     Channel(EventLoop *_loop, int _fd);
@@ -28,11 +30,13 @@ class Channel {
     uint32_t get_events();
     uint32_t get_revents();
     bool is_in_epoll();
-    void set_in_epoll();
+    void set_in_epoll(bool _in = true);
+    void useET();
 
     // void setEvents(uint32_t);
     void set_revents(uint32_t);
 
     void handleEvent();
-    void set_callback(std::function<void()>);
+    void set_read_callback(std::function<void()>);
+    void set_use_threadPool(bool use = true);
 };

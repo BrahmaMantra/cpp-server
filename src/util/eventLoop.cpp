@@ -5,9 +5,13 @@
 #include "channel.h"
 #include "epoll.h"
 
-EventLoop::EventLoop() : ep(new Epoll()), quit(false) {}
+EventLoop::EventLoop()
+    : ep(new Epoll()), thread_pool(new ThreadPool), quit(false) {}
 
-EventLoop::~EventLoop() { delete ep; }
+EventLoop::~EventLoop() {
+    delete ep;
+    delete thread_pool;
+}
 
 void EventLoop::loop() {
     while (!quit) {
@@ -19,3 +23,5 @@ void EventLoop::loop() {
 }
 
 void EventLoop::update_channel(Channel *ch) { ep->update_channel(ch); }
+
+void EventLoop::add_task(std::function<void()> task) { thread_pool->submit(task); }

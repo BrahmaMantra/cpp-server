@@ -72,6 +72,7 @@ ssize_t Socket::read(char *buf, size_t len) {
 }
 
 int Socket::accept(InetAddress *client_addr) {
+    
     int client_sockfd = ::accept(sockfd, (sockaddr *)&client_addr->addr,
                                  &client_addr->addr_len);
     if (client_sockfd == -1) {

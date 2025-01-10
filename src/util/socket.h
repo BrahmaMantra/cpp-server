@@ -27,4 +27,3 @@ class Socket {
     ssize_t read(char *buf, size_t len);
     int close();
 };
-void echoServer(Socket *client_sockfd);

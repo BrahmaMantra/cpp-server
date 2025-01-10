@@ -78,6 +78,12 @@
         "__config": "cpp",
         "__locale": "cpp",
         "filesystem": "cpp",
-        "ios": "cpp"
+        "ios": "cpp",
+        "any": "cpp",
+        "__mutex_base": "cpp",
+        "__debug": "cpp",
+        "__functional_03": "cpp",
+        "__functional_base": "cpp",
+        "future": "cpp"
     }
 }
