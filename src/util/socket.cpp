@@ -2,6 +2,7 @@
 
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -105,3 +106,19 @@ void Socket::connect(InetAddress *addr) {
         handleError(SocketError::CONNECTION_FAILED);
     }
 }
+
+
+InetAddress::InetAddress() : addr_len(sizeof(addr)) {
+    bzero(&addr, sizeof(addr));
+}
+// 默认是ipv4
+InetAddress::InetAddress(const char *ip, uint16_t port)
+    : addr_len(sizeof(addr)) {
+    bzero(&addr, sizeof(addr));
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = inet_addr(ip);
+    addr.sin_port = htons(port);
+    addr_len = sizeof(addr);
+}
+
+InetAddress::~InetAddress() {}

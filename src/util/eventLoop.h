@@ -5,14 +5,13 @@ class Channel;
 class EventLoop {
    private:
     Epoll *ep;
-    ThreadPool *thread_pool;
     bool quit;
+    int loop_id;
     
    public:
-    EventLoop();
+    EventLoop(int);
     ~EventLoop();
 
     void loop();
     void update_channel(Channel *);
-    void add_task(std::function<void()> task);
 };

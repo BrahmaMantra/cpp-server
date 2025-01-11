@@ -1,6 +1,6 @@
 #pragma once
 #include <sys/epoll.h>
-
+#include<iostream>
 #include <functional>
 
 #include "eventLoop.h"
@@ -10,16 +10,14 @@ class Channel {
    private:
     EventLoop *loop;
     int fd;
-    //表示希望监听这个文件描述符的哪些事件（感兴趣的）
+    // 注册事件时设置的,用户感兴趣的事件类型
     uint32_t events;
-    //在epoll返回该Channel时文件描述符正在发生的事件（实际发生）
-    uint32_t revents;
+    // 内核返回的,实际发生的事件类型
+    uint32_t r_events;
     bool in_epoll;
-    bool use_threadPool;
-    // 执行的回调函数
+    // 在EventLoop里执行的回调函数
     std::function<void()> read_callback;
     std::function<void()> writeCallback;
-
    public:
     Channel(EventLoop *_loop, int _fd);
     ~Channel();
@@ -28,15 +26,14 @@ class Channel {
 
     int get_fd();
     uint32_t get_events();
-    uint32_t get_revents();
+    uint32_t get_r_events();
     bool is_in_epoll();
     void set_in_epoll(bool _in = true);
     void useET();
 
     // void setEvents(uint32_t);
-    void set_revents(uint32_t);
+    void set_r_events(uint32_t);
 
     void handleEvent();
     void set_read_callback(std::function<void()>);
-    void set_use_threadPool(bool use = true);
 };

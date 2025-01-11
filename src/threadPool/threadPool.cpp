@@ -36,7 +36,7 @@ void ThreadPool::shutdown()
 }
 
 // template <typename F, typename... Args>
-// auto ThreadPool::submit(F &&f, Args &&...args) -> std::future<decltype(f(args...))>
+// auto ThreadPool::add_task(F &&f, Args &&...args) -> std::future<decltype(f(args...))>
 // {
 //     std::function<decltype(f(args...))()> func = std::bind(std::forward<F>(f), std::forward<Args>(args)...);
 

@@ -16,11 +16,11 @@ class Acceptor {
     Channel *acceptor_channel;
 
    public:
+    // 目前是由server的构造函数来决定的，后续应该根据客户端的需求从表里面选择
+    std::function<void(Socket *accept_sock)> acceptor_callback;
+
     Acceptor(EventLoop *_loop);
     ~Acceptor();
     void accept_connection();
-
-    // 目前是由server的构造函数来决定的
-    std::function<void(Socket *accept_sock)> acceptor_callback;
     void set_new_connection_callback(std::function<void(Socket *)> cb);
 };

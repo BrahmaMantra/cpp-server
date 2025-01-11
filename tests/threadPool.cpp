@@ -45,19 +45,19 @@ int multiply_return(const int a, const int b) {
 //     // 提交乘法操作，总共30个
 //     for (int i = 1; i <= 3; ++i)
 //         for (int j = 1; j <= 10; ++j) {
-//             pool.submit(multiply, i, j);
+//             pool.add_task(multiply, i, j);
 //         }
 
 //     // 使用ref传递的输出参数提交函数
 //     int output_ref;
-//     auto future1 = pool.submit(multiply_output, std::ref(output_ref), 5, 6);
+//     auto future1 = pool.add_task(multiply_output, std::ref(output_ref), 5, 6);
 
 //     // 等待乘法输出完成
 //     future1.get();
 //     std::cout << "Last operation result is equals to " << output_ref << std::endl;
 
 //     // 使用return参数提交函数
-//     auto future2 = pool.submit(multiply_return, 5, 3);
+//     auto future2 = pool.add_task(multiply_return, 5, 3);
 
 //     // 等待乘法输出完成
 //     int res = future2.get();

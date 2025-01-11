@@ -28,4 +28,6 @@ sudo apt-get install libgtest-dev
 - make run-server
 - make run-client
 - ctest
+   - ./bin/runTests --gtest_filter=ClientRequestsTest.*
+   - ./bin/runTests --gtest_filter=ThreadPoolTest.*
 - make gdb

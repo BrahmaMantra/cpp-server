@@ -1,6 +1,6 @@
 #include "acceptor.h"
 
-#include "InetAddress.h"
+
 #include "channel.h"
 #include "server.h"
 #include "socket.h"
@@ -15,7 +15,8 @@ Acceptor::Acceptor(EventLoop *_loop) : loop(_loop) {
     addr = new InetAddress("127.0.0.1", 7777);
     acceptor_sock->bind(addr);
     acceptor_sock->listen();
-    acceptor_sock->setNonblocking();
+    // 个人觉得acceptor用不到非阻塞
+    // acceptor_sock->setNonblocking();
     acceptor_channel = new Channel(loop, acceptor_sock->get_fd());
 
     // 为了在Epoll中监听accept事件，需要设置一个回调函数
@@ -28,7 +29,6 @@ Acceptor::Acceptor(EventLoop *_loop) : loop(_loop) {
     // 将当前Channel的回调函数设置为channel_callback
     acceptor_channel->set_read_callback(channel_callback);
     acceptor_channel->enable_reading();
-    acceptor_channel->set_use_threadPool(false);
     delete addr;
 }
 

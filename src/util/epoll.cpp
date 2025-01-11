@@ -41,7 +41,7 @@ std::vector<Channel *> Epoll::poll(int timeout) {
     for (int i = 0; i < nfds; ++i) {
         Channel *channel = static_cast<Channel *>(events[i].data.ptr);
         // 把正在发生的事件保存到channel中
-        channel->set_revents(events[i].events);
+        channel->set_r_events(events[i].events);
         active_channels.push_back(channel);
     }
     return active_channels;
