@@ -1,29 +1,122 @@
+' alt+d is vscode shortcut for plantuml preview
+' plantuml classes.puml when you have plantuml extension installed
 @startuml
 class EventLoop {
-    - Epoll *ep
-    + void update_channel(Channel *ch)
-    + void loop()
+    - std::unique_ptr<Epoller> ep
+    - bool quit
+    - int loop_id
+    + EventLoop(int)
+    + ~EventLoop()
+    + void loop() const
+    + void update_channel(Channel *) const
+    + void delete_channel(Channel *ch) const
 }
 class Server {
-    - EventLoop *loop
-    - Socket *serv_sock
-    + Server(EventLoop *loop)
+    - std::unique_ptr<EventLoop> main_reactor
+    - std::unique_ptr<Acceptor> acceptor
+    - std::unordered_map<int, TcpConnection *> connections
+    - std::vector<std::unique_ptr<EventLoop>> sub_reactors
+    - std::unique_ptr<ThreadPool> thread_pool
+    - std::function<void(TcpConnection *)> recv_callback
+    + Server(std::unique_ptr<EventLoop> loop, std::unique_ptr<InetAddress> addr)
     + ~Server()
-    + void handle_echo_event(Socket *client_sock)
     + void new_connection(Socket *serv_sock)
+    + void delete_connection(Socket *client_sock)
+    + void on_connect(std::function<void(TcpConnection *)> fn)
+    + void start_work()
 }
 
-Server *-- EventLoop
 
 class Channel {
-    - EventLoop *loop;
-    - int fd;
-    - uint32_t events;
-    - uint32_t revents;
-    - bool in_epoll;
-    - std::function<void()> callback;
-    + void handle_event()
+    - EventLoop *loop
+    - int fd
+    - uint32_t listen_events
+    - uint32_t ready_events
+    - bool in_epoll
+    - std::function<void()> read_callback
+    - std::function<void()> write_callback
+    - std::function<void()> close_callback
+    + Channel(EventLoop *_loop, int _fd)
+    + ~Channel()
+    + void enable_read()
+    + void enable_write()
+    + int get_fd()
+    + uint32_t get_listen_events()
+    + uint32_t get_ready_events()
+    + bool is_in_epoll()
+    + void set_in_epoll(bool _in = true)
+    + void enable_ET()
+    + void set_ready_events(uint32_t)
+    + void handleEvent()
+    + void set_read_callback(std::function<void()> const &callback)
+    + void set_write_callback(std::function<void()> const &callback)
+    + void set_close_callback(std::function<void()> const &callback)
+}
+class TcpConnection {
+    - enum ConnectionState 
+    
+    + TcpConnection(EventLoop *loop, Socket *client_sock)
+    + ~TcpConnection()
+    + void read()
+    + void write()
+    + void handle_close()
+    + void send(const std::string &msg)
+    + ConnectionState get_state()
+    + EventLoop *get_loop() const
+    + const char *send_buffer()
+    + const char *read_buffer()
+    + Socket *get_socket()
+    + void set_send_buffer(const char *str)
+    + void set_close_callback(std::function<void(Socket *)> cb)
+    + void set_recv_callback(std::function<void(TcpConnection *)> cb)
+    + void handle_recv()
+    - EventLoop *loop
+    - Socket *client_sock
+    - ConnectionState state
+    - std::unique_ptr<Channel> channel
+    - std::unique_ptr<Buffer> read_buffer_
+    - std::unique_ptr<Buffer> send_buffer_
+    - std::function<void(Socket *)> close_callback
+    - std::function<void(TcpConnection *)> recv_callback
+    - void read_nonBlocking()
+    - void write_nonBlocking()
+    - void read_blocking()
+    - void write_blocking()
 }
 
+
+class ThreadPool {
+    + ThreadPool(int n_threads = 4)
+    + ~ThreadPool()
+    + void init()
+    + void shutdown()
+    + bool is_shutdown() const
+    + SafeQueue<std::function<void()>> &get_queue()
+    + std::mutex &get_mutex()
+    + std::condition_variable &get_conditional_lock()
+    - bool m_shutdown
+    - SafeQueue<std::function<void()>> m_queue
+    - std::vector<std::thread> m_threads
+    - std::mutex m_conditional_mutex
+    - std::condition_variable m_conditional_lock
+    {method} auto add_task(F &&f, Args &&...args) -> std::future<decltype(f(args...))>
+}
+class Acceptor {
+    - EventLoop *loop
+    - Socket *acceptor_sock
+    - std::unique_ptr<InetAddress> addr
+    - std::unique_ptr<Channel> acceptor_channel
+    - std::function<void(Socket *accept_sock)> acceptor_callback
+    + Acceptor(EventLoop *_loop, std::unique_ptr<InetAddress> _addr)
+    + ~Acceptor()
+    + void accept_connection()
+    + void set_new_connection_callback(std::function<void(Socket *)> cb)
+}
+Server *-- Acceptor
+Server *-- ThreadPool
+Server *-- EventLoop
 Channel --> EventLoop
+TcpConnection --> Acceptor
+Acceptor --> Channel
+
 @enduml

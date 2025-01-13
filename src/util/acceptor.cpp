@@ -1,6 +1,5 @@
 #include "acceptor.h"
 
-
 #include "channel.h"
 #include "server.h"
 #include "socket.h"
@@ -10,48 +9,45 @@
  *
  * @param _loop 指向EventLoop对象的指针
  */
-Acceptor::Acceptor(EventLoop *_loop) : loop(_loop) {
+Acceptor::Acceptor(EventLoop *_loop, std::unique_ptr<InetAddress> _addr)
+    : loop(_loop), addr(std::move(_addr)) {
     acceptor_sock = new Socket();
-    addr = new InetAddress("127.0.0.1", 7777);
-    acceptor_sock->bind(addr);
+    acceptor_sock->bind(addr.get());
     acceptor_sock->listen();
     // 个人觉得acceptor用不到非阻塞
     // acceptor_sock->setNonblocking();
-    acceptor_channel = new Channel(loop, acceptor_sock->get_fd());
+    acceptor_channel = std::make_unique<Channel>(loop, acceptor_sock->get_fd());
 
     // 为了在Epoll中监听accept事件，需要设置一个回调函数
     // 如果在某个时刻你改变了acceptor_callback，那么channel_callback在执行时
     // 会调用最新的acceptor_callback。这是因为channel_callback捕获的是this指针
     // 而不是acceptor_callback的值。
-    std::function<void()> channel_callback = [this]() {
-        accept_connection();
-    };
+    std::function<void()> channel_callback = [this]() { accept_connection(); };
     // 将当前Channel的回调函数设置为channel_callback
     acceptor_channel->set_read_callback(channel_callback);
-    acceptor_channel->enable_reading();
-    delete addr;
+    acceptor_channel->enable_read();
+
+    // 未验证正确性
+    acceptor_channel->set_close_callback([this]() { delete this; });
 }
 
 /**
  * @brief 析构函数，清理Acceptor对象
  */
-Acceptor::~Acceptor() {
-    delete acceptor_sock;
-    delete addr;
-    delete acceptor_channel;
-}
+Acceptor::~Acceptor() { delete acceptor_sock; }
 
 /**
  * @brief 接受新连接并调用回调函数
  */
-// houxvzaizheli fenpei 
+// houxvzaizheli fenpei
 void Acceptor::accept_connection() {
-     InetAddress *client_addr = new InetAddress();
-     Socket * client_sock = new Socket(acceptor_sock->accept(client_addr));
-     client_sock->setNonblocking();
+    InetAddress *client_addr = new InetAddress();
+    Socket *client_sock =
+        new Socket(acceptor_sock->accept(std::move(client_addr)));
+    client_sock->setNonblocking();
     // new_connection()
-     acceptor_callback(client_sock);
-    }
+    acceptor_callback(std::move(client_sock));
+}
 
 /**
  * @brief 设置新的连接回调函数

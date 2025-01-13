@@ -1,8 +1,8 @@
 #include "socket.h"
 
+#include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
-#include <arpa/inet.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -73,7 +73,6 @@ ssize_t Socket::read(char *buf, size_t len) {
 }
 
 int Socket::accept(InetAddress *client_addr) {
-    
     int client_sockfd = ::accept(sockfd, (sockaddr *)&client_addr->addr,
                                  &client_addr->addr_len);
     if (client_sockfd == -1) {
@@ -81,9 +80,9 @@ int Socket::accept(InetAddress *client_addr) {
                   << std::endl;
         handleError(SocketError::ACCEPT_FAILED);
     }
-    printf("new client fd %d! IP: %s Port: %d\n", client_sockfd,
-           inet_ntoa(client_addr->addr.sin_addr),
-           ntohs(client_addr->addr.sin_port));
+    DEBUG_PRINT("accept():new client fd %d! IP: %s Port: %d\n", client_sockfd,
+                inet_ntoa(client_addr->addr.sin_addr),
+                ntohs(client_addr->addr.sin_port));
     return client_sockfd;
 }
 
@@ -100,13 +99,63 @@ void Socket::setNonblocking() {
 }
 int Socket::get_fd() { return sockfd; }
 void Socket::connect(InetAddress *addr) {
-    if (::connect(sockfd, (sockaddr *)&addr->addr, addr->addr_len) == -1) {
-        std::cerr << "Error connecting to server: " << std::strerror(errno)
-                  << std::endl;
-        handleError(SocketError::CONNECTION_FAILED);
+    struct sockaddr_in serv_addr = addr->addr;
+
+    // 判断是否为非阻塞
+    int flags = fcntl(sockfd, F_GETFL, 0);
+    bool isNonBlocking = (flags & O_NONBLOCK);
+
+    if (isNonBlocking) {
+        while (true) {
+            int ret = ::connect(sockfd, (struct sockaddr *)&serv_addr,
+                                sizeof(serv_addr));
+            if (ret == 0) {
+                // 连接成功
+                break;
+            } else if (ret == -1 && errno == EINPROGRESS) {
+                // 使用 select 等待可写，以确定连接是否完成
+                fd_set wset;
+                FD_ZERO(&wset);
+                FD_SET(sockfd, &wset);
+                struct timeval tv;
+                tv.tv_sec = 5;  // 例如 5 秒超时
+                tv.tv_usec = 0;
+
+                ret = select(sockfd + 1, nullptr, &wset, nullptr, &tv);
+                if (ret <= 0) {
+                    // 超时或错误
+                    perror("select");
+                    break;
+                }
+
+                if (FD_ISSET(sockfd, &wset)) {
+                    int so_error = 0;
+                    socklen_t len = sizeof(so_error);
+                    getsockopt(sockfd, SOL_SOCKET, SO_ERROR, &so_error, &len);
+                    if (so_error == 0) {
+                        // 连接成功
+                        break;
+                    } else {
+                        // 连接失败
+                        fprintf(stderr, "socket connect error: %s\n",
+                                strerror(so_error));
+                        break;
+                    }
+                }
+            } else {
+                // 其他错误
+                perror("socket connect error");
+                break;
+            }
+        }
+    } else {
+        // 阻塞式连接
+        if (::connect(sockfd, (struct sockaddr *)&serv_addr,
+                      sizeof(serv_addr)) == -1) {
+            perror("socket connect error");
+        }
     }
 }
-
 
 InetAddress::InetAddress() : addr_len(sizeof(addr)) {
     bzero(&addr, sizeof(addr));

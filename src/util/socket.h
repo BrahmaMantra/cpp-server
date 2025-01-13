@@ -1,9 +1,9 @@
 #pragma once
 
-#include <cstddef>
-#include <iostream>
 #include <netinet/in.h>
 
+#include <cstddef>
+#include <iostream>
 
 #define MAX_EVENTS 1024
 #define READ_BUFFER 1024

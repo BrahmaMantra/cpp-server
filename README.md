@@ -1,4 +1,8 @@
 # cpp-server
+## 项目介绍
+项目
+
+使用了主从Reactor实现的
 ## 前置工作
 ~~~ sh
 sudo apt-get install libgtest-dev

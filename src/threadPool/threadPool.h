@@ -37,8 +37,7 @@ class ThreadPool {
 
     // 提交任务
     template <typename F, typename... Args>
-    auto add_task(F &&f, Args &&...args)
-        -> std::future<decltype(f(args...))> {
+    auto add_task(F &&f, Args &&...args) -> std::future<decltype(f(args...))> {
         std::function<decltype(f(args...))()> func =
             std::bind(std::forward<F>(f), std::forward<Args>(args)...);
 

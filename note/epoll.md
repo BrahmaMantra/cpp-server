@@ -33,3 +33,6 @@ question：event.data.fd和fd一定要是一样的吗，为什么？
     }
 ```
 如果是水平触发，那么每次 epoll_wait() 都能返回这个 tcp_fd 的事件，共返回 （1MB / 1KB）= 1024 次事件；如果是边沿触发，那么只有第一次返回了 tcp_fd 的事件，后边的 epoll_wait() 也不返回了。
+
+
+## EPOLLRDHUP和 EPOLLHUP的区别

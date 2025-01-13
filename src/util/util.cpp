@@ -1,6 +1,7 @@
 #include <errno.h>
 #include <stdlib.h>
-#include<util.h>
+#include <util.h>
+
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -42,17 +43,9 @@ void load_env_file(const std::string &env_filename) {
         // 获取并打印环境变量 MY_VAR 的值
         const char *env_value = std::getenv(key.c_str());
         if (env_value) {
-            std::string debug_info = key + "=" + env_value;
-            debugPrint(debug_info);
+            DEBUG_PRINT("%s=%s\n", key.c_str(), env_value);
         } else {
-            std::cout << key<<"is not set" << std::endl;
+            std::cout << key << "is not set" << std::endl;
         }
-    }
-}
-
-void debugPrint(const std::string &message) {
-    const char *debugEnv = std::getenv("DEBUG");
-    if (debugEnv && std::string(debugEnv) == "1") {
-        std::cout << message << std::endl;
     }
 }

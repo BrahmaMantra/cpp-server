@@ -1,0 +1,2 @@
+Test project /home/fz/cpp-project/cpp-server
+    Start 1: runTests

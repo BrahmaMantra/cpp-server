@@ -18,6 +18,9 @@ int main() {
         char buf[BUFFER_SIZE];
         bzero(&buf, sizeof(buf));
         std::cin >> buf;
+        if (strncmp(buf, "exit", 4) == 0) {
+            break;
+        }
         client_sock->write(buf, sizeof(buf));
         bzero(&buf, sizeof(buf));
         ssize_t read_bytes = client_sock->read(buf, sizeof(buf));

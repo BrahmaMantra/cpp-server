@@ -7,21 +7,25 @@
 #include "channel.h"
 #include "epoll.h"
 #include "util.h"
-EventLoop::EventLoop(int loop_id)
-    : ep(new Epoll()), quit(false), loop_id(loop_id) {}
+EventLoop::EventLoop(int loop_id) : quit(false), loop_id(loop_id) {
+    ep = std::make_unique<Epoller>();
+}
 
-EventLoop::~EventLoop() { delete ep; }
+EventLoop::~EventLoop() {}
 
-void EventLoop::loop() {
+void EventLoop::loop() const {
     while (!quit) {
         std::vector<Channel *> active_channels = ep->poll();
         for (auto it : active_channels) {
-            std::string debug_info = "loop(): loop_id: " + std::to_string(loop_id) +
-                             ", prepare to work";
-            debugPrint(debug_info);
+            DEBUG_PRINT("loop(): loop_id: %d, fd: %d prepared to work \n",
+                        loop_id, it->get_fd());
+
             it->handleEvent();
         }
     }
 }
 
-void EventLoop::update_channel(Channel *ch) { ep->update_channel(ch); }
+// 每次更新了epoll(Channel)事件后，都要调用这个函数
+// 也是进入epollLoop的唯一入口
+void EventLoop::update_channel(Channel *ch) const { ep->update_channel(ch); }
+void EventLoop::delete_channel(Channel *ch) const { ep->delete_channel(ch); }

