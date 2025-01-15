@@ -15,7 +15,7 @@ EventLoop::~EventLoop() {}
 
 void EventLoop::loop() const {
     while (!quit) {
-        std::vector<Channel *> active_channels = ep->poll();
+        std::vector<Channel *> active_channels = ep->poll(5000);
         for (auto it : active_channels) {
             DEBUG_PRINT("loop(): loop_id: %d, fd: %d prepared to work \n",
                         loop_id, it->get_fd());
@@ -29,3 +29,13 @@ void EventLoop::loop() const {
 // 也是进入epollLoop的唯一入口
 void EventLoop::update_channel(Channel *ch) const { ep->update_channel(ch); }
 void EventLoop::delete_channel(Channel *ch) const { ep->delete_channel(ch); }
+
+void EventLoop::delete_connection(Socket *client_sock) {
+    ep->_delete_connection(client_sock);
+}
+void EventLoop::insert_connection(int id, TcpConnection *connection) {
+    ep->_insert_connection(id, connection);
+}
+TcpConnection *EventLoop::find_connection(int id) {
+    return ep->_find_connection(id);
+}

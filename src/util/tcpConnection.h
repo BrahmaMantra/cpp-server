@@ -7,6 +7,9 @@
 class Buffer;
 class Socket;
 class Channel;
+class Server;
+class EventLoop;
+#define TIMER_INTERVAL 5000 //单位ms
 class TcpConnection {
    public:
     enum ConnectionState {
@@ -42,14 +45,14 @@ class TcpConnection {
     void set_recv_callback(std::function<void(TcpConnection *)> cb);
 
     void handle_recv();
-
+    void init(Server *server);
    private:
+    std::unique_ptr<Channel> channel;
     EventLoop *loop;
     // 该连接绑定的Socket
     Socket *client_sock;
     ConnectionState state;
 
-    std::unique_ptr<Channel> channel;
     std::unique_ptr<Buffer> read_buffer_;
     std::unique_ptr<Buffer> send_buffer_;
 
@@ -58,6 +61,7 @@ class TcpConnection {
 
     void read_nonBlocking();
     void write_nonBlocking();
-    void read_blocking();
-    void write_blocking();
+    // void read_blocking();
+    // void write_blocking();
+    // void send_heartbeat(); // 发送心跳
 };

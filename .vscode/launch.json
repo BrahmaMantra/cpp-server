@@ -18,6 +18,11 @@
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
+                },
+                {
+                    "description": "Load .gdbinit",
+                    "text": "source ${workspaceFolder}/tools/.gdbinit",
+                    "ignoreFailures": true
                 }
             ],
             "preLaunchTask": "CMake: build",

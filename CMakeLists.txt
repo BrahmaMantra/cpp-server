@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 3.10)
 
 # 启用debug模式
 set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS "-g -Wall -Werror -std=c++14")
+set(CMAKE_CXX_FLAGS "-g -Wall -Werror -std=c++17")
 set(CMAKE_CXX_COMPILER "g++")
 set(CMAKE_CXX_FLAGS_DEBUG "-O0")
 

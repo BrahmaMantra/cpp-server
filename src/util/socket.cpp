@@ -55,20 +55,20 @@ ssize_t Socket::write(const char *buf, size_t len) {
 // read坚决不close，close由上层调用
 ssize_t Socket::read(char *buf, size_t len) {
     ssize_t read_bytes = ::read(sockfd, buf, len);
-    if (read_bytes == -1) {
-        if (errno == EINTR) {  // 客户端正常中断、继续读取
-                               // printf("continue reading");
-                               // 如果是被信号中断，继续读取
-        } else if ((errno == EAGAIN) ||
-                   (errno ==
-                    EWOULDBLOCK)) {  // 非阻塞IO，这个条件表示数据全部读取完毕
-            // std::cerr << "finish reading once, errno: " <<
-            // std::strerror(errno) << std::endl;
-        } else {
-            // std::cerr << "Error reading from socket: " <<
-            // std::strerror(errno) << std::endl; close();
-        }
-    }
+    // if (read_bytes == -1) {
+    //     if (errno == EINTR) {  // 客户端正常中断、继续读取
+    //                            // printf("continue reading");
+    //                            // 如果是被信号中断，继续读取
+    //     } else if ((errno == EAGAIN) ||
+    //                (errno ==
+    //                 EWOULDBLOCK)) {  // 非阻塞IO，这个条件表示数据全部读取完毕
+    //         // std::cerr << "finish reading once, errno: " <<
+    //         // std::strerror(errno) << std::endl;
+    //     } else {
+    //         // std::cerr << "Error reading from socket: " <<
+    //         // std::strerror(errno) << std::endl; close();
+    //     }
+    // }
     return read_bytes;
 }
 
@@ -98,6 +98,8 @@ void Socket::setNonblocking() {
     fcntl(sockfd, F_SETFL, fcntl(sockfd, F_GETFL) | O_NONBLOCK);
 }
 int Socket::get_fd() { return sockfd; }
+
+// 一般由客户端调用
 void Socket::connect(InetAddress *addr) {
     struct sockaddr_in serv_addr = addr->addr;
 

@@ -1,5 +1,5 @@
 #include "acceptor.h"
-
+#include"tcpConnection.h"
 #include "channel.h"
 #include "server.h"
 #include "socket.h"
@@ -26,6 +26,7 @@ Acceptor::Acceptor(EventLoop *_loop, std::unique_ptr<InetAddress> _addr)
     // 将当前Channel的回调函数设置为channel_callback
     acceptor_channel->set_read_callback(channel_callback);
     acceptor_channel->enable_read();
+    loop->update_channel(acceptor_channel.get());
 
     // 未验证正确性
     acceptor_channel->set_close_callback([this]() { delete this; });
@@ -43,10 +44,11 @@ Acceptor::~Acceptor() { delete acceptor_sock; }
 void Acceptor::accept_connection() {
     InetAddress *client_addr = new InetAddress();
     Socket *client_sock =
-        new Socket(acceptor_sock->accept(std::move(client_addr)));
+        new Socket(acceptor_sock->accept(client_addr));
     client_sock->setNonblocking();
-    // new_connection()
-    acceptor_callback(std::move(client_sock));
+    acceptor_callback(client_sock);
+    // 记得释放client_addr，否则会内存泄漏
+    delete client_addr;
 }
 
 /**
