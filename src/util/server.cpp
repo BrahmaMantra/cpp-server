@@ -87,13 +87,13 @@ int Server::get_handle_type() { return handle_type; }
 void hanele_echo(TcpConnection *conn) {
     DEBUG_PRINT("hanele_echo()\n");
                 static int count = 0;
-            std::cout << "count:" << count++ << std::endl;
+    printf("count = %d",count++);
     conn->read();
     if (conn->get_state() == TcpConnection::ConnectionState::Closed) {
         conn->handle_close();
         return;
     }
-    printf("handle_echo():Message from client %d: %s\n",
+    INFO_PRINT("handle_echo():Message from client %d: %s\n",
                conn->get_socket()->get_fd(), conn->read_buffer());
 
     conn->set_send_buffer(conn->read_buffer());
