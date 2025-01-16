@@ -1,5 +1,6 @@
 #pragma once
 #include <functional>
+#include <mutex>
 
 #include "eventLoop.h"
 #include "tcpConnection.h"
@@ -10,7 +11,7 @@ class Channel;
 class Server;
 class EventLoop;
 #define TIMER_INTERVAL 5000 //单位ms
-class TcpConnection {
+class TcpConnection : public std::enable_shared_from_this<TcpConnection>  {
    public:
     enum ConnectionState {
         Invalid = 1,
@@ -23,7 +24,7 @@ class TcpConnection {
     TcpConnection(EventLoop *loop, Socket *client_sock);
     ~TcpConnection();
 
-    void read();
+    void read(bool is_ping_test = false);
     void write();
     // 当TcpConnection发起关闭请求时，进行回调，释放相应的socket.
     void handle_close();
@@ -47,7 +48,7 @@ class TcpConnection {
     void handle_recv();
     void init(Server *server);
    private:
-    std::unique_ptr<Channel> channel;
+    std::shared_ptr<Channel> channel;
     EventLoop *loop;
     // 该连接绑定的Socket
     Socket *client_sock;
@@ -59,9 +60,11 @@ class TcpConnection {
     std::function<void(Socket *)> close_callback;
     std::function<void(TcpConnection *)> recv_callback;
 
+    std::mutex buffer_mtx;
+
     void read_nonBlocking();
     void write_nonBlocking();
-    // void read_blocking();
+    void read_blocking(int timeout_sec);
     // void write_blocking();
     // void send_heartbeat(); // 发送心跳
 };

@@ -6,9 +6,10 @@
 
 #include "eventLoop.h"
 #include "util.h"
+#include <memory>
 class Epoller;
 //封装Epoll_events
-class Channel {
+class Channel:public std::enable_shared_from_this<Channel> {
    private:
     EventLoop *loop;
     int fd;

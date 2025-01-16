@@ -5,6 +5,9 @@
 
 void errif(bool, const char *);
 void load_env_file(const std::string &env_filename);
+#define HEARTBEAT_MSG "HEARTBEAT"
+#define HEARTBEAT_RESPONSE "ALIVE"
+
 
 // Macros to disable copying and moving
 #define DISALLOW_COPY(cname)       \

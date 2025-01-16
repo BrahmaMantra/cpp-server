@@ -1,13 +1,14 @@
 #pragma once
-#include "threadPool/threadPool.h"
-#include "util.h"
 #include <memory>
 #include <unordered_map>
-#include"tcpConnection.h"
+
+#include "tcpConnection.h"
+#include "threadPool/threadPool.h"
+#include "util.h"
 class Epoller;
 class Channel;
 class Socket;
-class TcpConnection; // 前向声明 TcpConnection
+class TcpConnection;  // 前向声明 TcpConnection
 class EventLoop {
    private:
     std::unique_ptr<Epoller> ep;
@@ -19,13 +20,14 @@ class EventLoop {
     EventLoop(int loop_id);
     ~EventLoop();
 
-    
-
     void loop() const;
-    void update_channel(Channel *) const;
-    void delete_channel(Channel *ch) const;
+    // 会同时更新connections
+    void update_channel(std::shared_ptr<Channel> ch);
 
-    void delete_connection(Socket *client_sock);
-    void insert_connection(int id, TcpConnection *connection);    // 插入或更新连接
-    TcpConnection *find_connection(int id);// 查找连接
+    // 删除connection就一定会修改channel
+    void delete_connection(Socket* client_sock);
+
+    void insert_connection(
+        int id, std::shared_ptr<TcpConnection> connection);  // 插入或更新连接
+    std::shared_ptr<TcpConnection> find_connection(int id);  // 查找连接
 };

@@ -26,16 +26,15 @@ Acceptor::Acceptor(EventLoop *_loop, std::unique_ptr<InetAddress> _addr)
     // 将当前Channel的回调函数设置为channel_callback
     acceptor_channel->set_read_callback(channel_callback);
     acceptor_channel->enable_read();
-    loop->update_channel(acceptor_channel.get());
-
     // 未验证正确性
     acceptor_channel->set_close_callback([this]() { delete this; });
+    loop->update_channel(std::move(acceptor_channel));
 }
 
 /**
  * @brief 析构函数，清理Acceptor对象
  */
-Acceptor::~Acceptor() { delete acceptor_sock; }
+Acceptor::~Acceptor() { delete acceptor_sock;acceptor_sock=nullptr; }
 
 /**
  * @brief 接受新连接并调用回调函数

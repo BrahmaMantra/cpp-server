@@ -1,5 +1,7 @@
 #include <arpa/inet.h>
 #include <gtest/gtest.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 #include <atomic>
 #include <cstring>
@@ -9,12 +11,14 @@
 
 #include "error/socket_exception.h"
 
-#define NUM_CLIENTS 10000
+#define NUM_CLIENTS 20000
 #define SERVER_IP "127.0.0.1"
 #define SERVER_PORT 7777
 #define BUFFER_SIZE 1024
+#define HEARTBEAT_MSG "HEARTBEAT"
+#define HEARTBEAT_RESPONSE "ALIVE"
 // 线程创立间隔
-#define SLEEP_MICROSECONDS 200
+#define SLEEP_MICROSECONDS 10
 
 std::atomic<int> successful_connections(0);
 
@@ -44,6 +48,7 @@ void client_request(int thread_num) {
 
         std::string message = "Hi, I'm the " + std::to_string(thread_num) + " thread";
         ssize_t sent_bytes = send(client_sock, message.c_str(), message.size(), 0);
+
         if (sent_bytes < 0) {
             std::cerr << "Send failed (thread " << thread_num << ")" << std::endl;
             close(client_sock);
@@ -52,23 +57,37 @@ void client_request(int thread_num) {
 
         char buf[BUFFER_SIZE];
         memset(buf, 0, BUFFER_SIZE);
-        ssize_t read_bytes = recv(client_sock, buf, BUFFER_SIZE, 0);
 
-        if (read_bytes > 0) {
-            std::string received_message(buf, read_bytes);
-            received_message.erase(received_message.find_last_not_of("\n ") + 1);
-            if (received_message == message) {
-                successful_connections++;
+        // std::this_thread::sleep_for(std::chrono::microseconds(SLEEP_MICROSECONDS));
+        while (true) {
+            ssize_t read_bytes = recv(client_sock, buf, BUFFER_SIZE, 0);
+            if (read_bytes > 0) {
+                std::string received_message(buf, read_bytes);
+                received_message.erase(received_message.find_last_not_of("\n ") + 1);
+                if (received_message == message) {
+                    successful_connections++;
+                    break;
+                } else if (received_message == HEARTBEAT_MSG) {
+                    ssize_t sent_bytes = send(client_sock, HEARTBEAT_RESPONSE, strlen(HEARTBEAT_RESPONSE), 0);
+                    if (sent_bytes < 0) {
+                        std::cerr << "Failed to send heartbeat response (thread " << thread_num << ")" << std::endl;
+                        close(client_sock);
+                        return;
+                    }
+                } else {
+                    std::cerr << "Thread " << thread_num << ": Received unexpected message: " << received_message << std::endl;
+                }
+            } else if (read_bytes == 0) {
+                std::cerr << "Server socket disconnected (thread " << thread_num << ")" << std::endl;
+                break;
             } else {
-                std::cerr << "Thread " << thread_num << ": Received unexpected message: " << received_message << std::endl;
+                std::cerr << "Socket read error (thread " << thread_num << ")" << std::endl;
+                break;
             }
-        } else if (read_bytes == 0) {
-            std::cerr << "Server socket disconnected (thread " << thread_num << ")" << std::endl;
-        } else {
-            std::cerr << "Socket read error (thread " << thread_num << ")" << std::endl;
         }
 
         close(client_sock);
+        std::cout << "Thread " << thread_num << " finished" << std::endl;
     } catch (const std::exception &e) {
         std::cerr << "Exception in thread " << thread_num << ": " << e.what() << std::endl;
     } catch (...) {

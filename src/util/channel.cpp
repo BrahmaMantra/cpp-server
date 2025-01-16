@@ -1,7 +1,7 @@
 #include "channel.h"
 
 #include <iostream>
-
+#include<mutex>
 #include "epoll.h"
 #include "eventLoop.h"
 Channel::Channel(EventLoop *_loop, int _fd)
@@ -27,16 +27,13 @@ void Channel::set_in_epoll(bool _in) { in_epoll = _in; }
 void Channel::enable_read() {
     // EPOLLIN可读，EPOLLET边缘触发,EPOLLRDHUP对端关闭连接
     listen_events |= EPOLLIN | EPOLLET | EPOLLRDHUP;
-    // loop->update_channel(this);
 }
 // TODO!
 void Channel::enable_write() {
     listen_events |= EPOLLOUT | EPOLLRDHUP;
-    // loop->update_channel(this);
 }
 void Channel::enable_ET() {
     listen_events |= EPOLLET;
-    // loop->update_channel(this);
 }
 
 void Channel::set_ready_events(uint32_t _ev) { ready_events = _ev; }

@@ -1,42 +1,42 @@
-#include "threadPool/threadPool.h"
+// #include "threadPool/threadPool.h"
 
-#include <gtest/gtest.h>
+// #include <gtest/gtest.h>
 
-#include <iostream>
-#include <random>
+// #include <iostream>
+// #include <random>
 
-std::random_device rd;  // 真实随机数产生器
-std::mt19937 mt(rd());  //生成计算随机数mt
-std::uniform_int_distribution<int> dist(
-    -1000, 1000);  //生成-1000到1000之间的离散均匀分布数
-auto rnd = std::bind(dist, mt);
+// std::random_device rd;  // 真实随机数产生器
+// std::mt19937 mt(rd());  //生成计算随机数mt
+// std::uniform_int_distribution<int> dist(
+//     -1000, 1000);  //生成-1000到1000之间的离散均匀分布数
+// // auto rnd = std::bind(dist, mt);
 
-// 设置线程睡眠时间
-void simulate_hard_computation() {
-    std::this_thread::sleep_for(std::chrono::milliseconds(2000 + rnd()));
-}
+// // 设置线程睡眠时间
+// void simulate_hard_computation() {
+//     std::this_thread::sleep_for(std::chrono::milliseconds(500));
+// }
 
-// 添加两个数字的简单函数并打印结果
-void multiply(const int a, const int b) {
-    simulate_hard_computation();
-    const int res = a * b;
-    std::cout << a << " * " << b << " = " << res << std::endl;
-}
+// // 添加两个数字的简单函数并打印结果
+// void multiply(const int a, const int b) {
+//     simulate_hard_computation();
+//     const int res = a * b;
+//     std::cout << a << " * " << b << " = " << res << std::endl;
+// }
 
-// 添加并输出结果
-void multiply_output(int &out, const int a, const int b) {
-    simulate_hard_computation();
-    out = a * b;
-    std::cout << a << " * " << b << " = " << out << std::endl;
-}
+// // 添加并输出结果
+// void multiply_output(int &out, const int a, const int b) {
+//     simulate_hard_computation();
+//     out = a * b;
+//     std::cout << a << " * " << b << " = " << out << std::endl;
+// }
 
-// 结果返回
-int multiply_return(const int a, const int b) {
-    simulate_hard_computation();
-    const int res = a * b;
-    std::cout << a << " * " << b << " = " << res << std::endl;
-    return res;
-}
+// // 结果返回
+// int multiply_return(const int a, const int b) {
+//     simulate_hard_computation();
+//     const int res = a * b;
+//     std::cout << a << " * " << b << " = " << res << std::endl;
+//     return res;
+// }
 
 // TEST(ThreadPoolTest, BasicFunctionality) {
 //     // 创建3个线程的线程池
@@ -46,8 +46,8 @@ int multiply_return(const int a, const int b) {
 //     pool.init();
 
 //     // 提交乘法操作，总共30个
-//     for (int i = 1; i <= 3; ++i)
-//         for (int j = 1; j <= 10; ++j) {
+//     for (int i = 1; i <= 300; ++i)
+//         for (int j = 1; j <= 100; ++j) {
 //             pool.add_task(multiply, i, j);
 //         }
 

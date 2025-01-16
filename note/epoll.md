@@ -36,3 +36,21 @@ question：event.data.fd和fd一定要是一样的吗，为什么？
 
 
 ## EPOLLRDHUP和 EPOLLHUP的区别
+
+
+
+在用std::shared_ptr<std::unordered_map<int, TcpConnection *>> all_connections;的时候，我在心跳检测时用了这个函数：
+    // 新增方法：发送Ping消息给所有连接
+    void Epoller::send_ping_to_all_connections() const {
+        if (auto connections = all_connections) {
+            for (auto& [fd, conn] : *connections) {
+                if (conn) {
+                    conn->send("ping");
+                    bool is_ping_test = true;
+                    conn->read(is_ping_test);
+                }
+            }
+        }
+    }
+但是问题是我心跳检测的时候从connections断开了一些连接（调用了析构函数并且设置conn为nullptr），导致这里会出现Segment fault、
+- 解决办法：用智能指针，把weak_ptr给connections

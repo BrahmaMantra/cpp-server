@@ -23,7 +23,7 @@ class Server {
 
     // 加锁保护防止多线程访问导致的数据竞争
     // 对connections封装的函数默认加锁
-    std::shared_ptr<std::unordered_map<int, TcpConnection *>> connections;
+    std::unordered_map<int, std::weak_ptr<TcpConnection>> all_connections;
 
     std::vector<std::unique_ptr<EventLoop>> sub_reactors;
     std::unique_ptr<ThreadPool> thread_pool;
